@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpaca Adventure | WSC Talent Show</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/ScrollTrigger.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #intro {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            text-align: center;
+            color: white;
+            z-index: 10;
+        }
+        
+        .scroll-hint {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: bounce 2s infinite;
+            z-index: 100;
+            color: white;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0) translateX(-50%);}
+            40% {transform: translateY(-20px) translateX(-50%);}
+            60% {transform: translateY(-10px) translateX(-50%);}
+        }
+        
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: inherit;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 2rem auto;
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.6s ease-out;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+            z-index: 10;
+        }
+        
+        .card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .alpaca-fact {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.7);
+            border-radius: 15px;
+            border-left: 5px solid #a777e3;
+        }
+        
+        .fun-fact {
+            background-color: #f8f4ff;
+            border-left-color: #6e8efb;
+            position: relative;
+            padding-left: 3.5rem;
+        }
+        
+        .fun-fact::before {
+            content: "✨";
+            position: absolute;
+            left: 1rem;
+            top: 1.5rem;
+            font-size: 1.2rem;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .alpaca-image {
+            width: 100%;
+            border-radius: 15px;
+            margin: 1.5rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .alpaca-image:hover {
+            transform: scale(1.03);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+        
+        .comparison-table th, .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .comparison-table th {
+            background-color: #6e8efb;
+            color: white;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .wsc-branding {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 100;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            h2 {
+                font-size: 1.8rem;
+            }
+            
+            .card {
+                padding: 2rem;
+            }
+            
+            .wsc-branding {
+                top: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="wsc-branding">World Scholar's Cup Talent Show</div>
+    
+    <section id="intro" class="section">
+        <h1>The Amazing World of Alpacas</h1>
+        <h2>Nature's Most Fascinating Creatures</h2>
+        
+        <div class="scroll-hint">
+            <div>👇</div>
+            <p>Scroll to Begin the Journey</p>
+        </div>
+    </section>
+    
+    <section id="origin" class="section">
+        <div class="card">
+            <h2>Origins of the Alpaca</h2>
+            
+            <div class="alpaca-fact">
+                <p>Alpacas (<em>Vicugna pacos</em>) were domesticated by the ancient Andean civilizations over 6,000 years ago in what is now Peru, Bolivia, Ecuador, and Chile. They were treasured by the Inca civilization and often referred to as "the gold of the Andes."</p>
+            </div>
+            
+            <img src="istockphoto-90092639-1024x1024.jpg    " alt="Alpacas in the Andes" class="alpaca-image">
+            
+            <div class="alpaca-fact fun-fact">
+                <p><strong>Fun Fact:</strong> Alpacas are closely related to llamas, but they're about half the size and were bred specifically for their soft fleece rather than as pack animals.</p>
+            </div>
+        </div>
+    </section>
+    
+    <section id="types" class="section">
+        <div class="card">
+            <h2>Types of Alpacas</h2>
+            
+            <p>There are two distinct breeds of alpacas, each with unique characteristics:</p>
+            
+            <div class="alpaca-fact">
+                <h3>Huacaya Alpacas</h3>
+                <p>Making up about 90% of all alpacas, Huacayas have dense, crimpy fleece that gives them a fluffy, teddy bear-like appearance. Their fiber grows perpendicular to their body.</p>
+            </div>
+            
+            <div class="alpaca-fact">
+                <h3>Suri Alpacas</h3>
+                <p>Suris have long, silky fleece that hangs down in distinctive pencil-like locks. Their fiber grows parallel to their body and drapes down like elegant curtains.</p>
+            </div>
+            <h3>Suri Alpaca example:</h3>
+            <img src="istockphoto-90397316-1024x1024.jpg" alt="Huacaya and Suri alpacas" class="alpaca-image">
+        </div>
+    </section>
+    
+    <section id="characteristics" class="section">
+        <div class="card">
+            <h2>Alpaca Characteristics</h2>
+            
+            <div class="alpaca-fact fun-fact">
+                <p><strong>Did you know?</strong> Alpacas communicate through body language and a complex range of vocalizations including humming, clucking, and alarm calls.</p>
+            </div>
+            
+            <table class="comparison-table">
+                <tr>
+                    <th>Feature</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Height</td>
+                    <td>81-99 cm (32-39 in) at the shoulder</td>
+                </tr>
+                <tr>
+                    <td>Weight</td>
+                    <td>48-84 kg (106-185 lb)</td>
+                </tr>
+                <tr>
+                    <td>Lifespan</td>
+                    <td>15-20 years</td>
+                </tr>
+                <tr>
+                    <td>Gestation</td>
+                    <td>11-12 months, usually single births</td>
+                </tr>
+                <tr>
+                    <td>Fiber</td>
+                    <td>Produce 2.5-4 kg (5.5-8.8 lb) annually</td>
+                </tr>
+            </table>
+            
+            <div class="alpaca-fact">
+                <p>Alpacas have soft padded feet that don't damage pastures like hooves do. They're also environmentally friendly - they eat less than other livestock and use communal dung piles!</p>
+            </div>
+        </div>
+    </section>
+    
+    <section id="importance" class="section">
+        <div class="card">
+            <h2>Why Alpacas Matter</h2>
+            
+            <div class="alpaca-fact">
+                <h3>Economic Importance</h3>
+                <p>Alpaca fiber is prized for its softness, warmth, and durability. It's hypoallergenic, warmer than sheep's wool, and comes in 22 natural colors. The global alpaca fiber market continues to grow as demand for sustainable luxury fibers increases.</p>
+            </div>
+            
+            <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Alpaca fiber products" class="alpaca-image">
+            
+            <div class="alpaca-fact fun-fact">
+                <p><strong>Cultural Significance:</strong> In Andean cultures, alpacas are more than livestock - they're part of the family and integral to traditional ceremonies and festivals.</p>
+            </div>
+        </div>
+    </section>
+    
+    <section id="fun-facts" class="section">
+        <div class="card">
+            <h2>Alpaca Fun Facts</h2>
+            
+            <div class="alpaca-fact fun-fact">
+                <p>Alpacas always spit at each other when they're fighting over food, but they rarely spit at humans unless they're very stressed.</p>
+            </div>
+            
+            <div class="alpaca-fact">
+                <p>An alpaca's teeth continue to grow throughout its life, much like a rodent's. In males, the fighting teeth (sharp canines) grow long and may need to be trimmed.</p>
+            </div>
+            
+            <div class="alpaca-fact fun-fact">
+                <p>Alpacas make excellent therapy animals because of their gentle nature and calming presence. Many hospitals and nursing homes now have alpaca therapy programs.</p>
+            </div>
+            
+            <img src="istockphoto-532529153-1024x1024.jpg" alt="Alpaca smiling" class="alpaca-image">
+        </div>
+    </section>
+    
+    <section id="finale" class="section">
+        <div class="card">
+            <h2>The Wonderful World of Alpacas</h2>
+            
+            <div class="alpaca-fact">
+                <p>From their ancient Andean origins to their modern global presence, alpacas continue to captivate people worldwide. These intelligent, gentle animals provide sustainable fiber, bring joy to those who interact with them, and represent an important part of South American cultural heritage.</p>
+            </div>
+            
+            <div class="alpaca-fact fun-fact">
+                <p><strong>Final Thought:</strong> In a world that often moves too fast, perhaps we could all learn something from the alpaca's gentle pace and peaceful nature.</p>
+            </div>
+            
+            <img src="istockphoto-1282077735-1024x1024.jpg" alt="Alpaca herd" class="alpaca-image">
+            
+            
+        </div>
+
+        <div class="card">
+            <h2>🛠️ Developer Reference Guide</h2>
+
+            <div class="alpaca-fact">
+                <div class="tech-stack">
+                    <h3>📚 Technology Stack</h3>
+                    <ul>
+                        <li><strong>Three.js r128</strong> - Handles all 3D rendering, particle systems, and scene management</li>
+                        <li><strong>GSAP 3.7.1</strong> - Smooth animations and transitions</li>
+                        <li><strong>ScrollTrigger</strong> - Manages scroll-based animations and transitions</li>
+                        <li><strong>Intersection Observer API</strong> -  For element visibility detection</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="alpaca-fact">
+                <div>
+                    <h3>1. Particle System Algorithm:</h3>
+                    <p>The particle system is created using a BufferGeometry with random positions, colors, and sizes. The particles are animated using sine and cosine functions to create a flowing effect.</p>
+                </div>
+            </div>
+            <div class="alpaca-fact">
+                <div>
+                    <h3>2. Scroll Animation Logic:</h3>
+                    <p>GSAP's ScrollTrigger is used to animate sections as they come into view. The Intersection Observer API is used to detect when cards are in the viewport, triggering their visibility.</p>
+                </div>
+            </div>
+            <div class="alpaca-fact">
+                <div>
+                    <h3>3. 3D Optimization Techniques:</h3>
+                    <p>To optimize performance, the scene uses a low-polygon mountain geometry and sprite materials for the alpacas. The renderer is set to use sRGBEncoding for better color management.</p>
+                </div>
+            </div>
+
+           
+
+        </div>
+
+        <div class="card">
+            <h2>TMI</h2>
+            <div class="alpaca-fact">
+                <h3>I tried to make an alpaca float in the background, but it didn’t turn out the way I imagined 🥺</h3>
+            </div> 
+            <div class="alpaca-fact">
+                <h3>I stayed up all night yesterday for this... and it still didn’t turn out how I wanted 😭</h3>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem; font-size: 1.2rem;">
+                <p>Thank you for exploring the amazing world of alpacas!</p>
+                <p style="margin-top: 1rem;">World Scholar's Cup Talent Show Presentation</p>
+            </div>
+        </div>
+
+
+
+    </section>
+
+    <script>
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            alpha: true
+        });
+        
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        container.appendChild(renderer.domElement);
+        
+        
+        const mountainGeometry = new THREE.PlaneGeometry(20, 20, 10, 10);
+        const mountainMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x4a6b8a,
+            side: THREE.DoubleSide,
+            flatShading: true
+        });
+        
+        
+        const positions = mountainGeometry.attributes.position;
+        for (let i = 0; i < positions.count; i++) {
+            positions.setZ(i, Math.random() * 3);
+        }
+        
+        mountainGeometry.computeVertexNormals();
+        const mountains = new THREE.Mesh(mountainGeometry, mountainMaterial);
+        mountains.rotation.x = -Math.PI / 2;
+        mountains.position.z = -10;
+        scene.add(mountains);
+        
+        const alpacaCount = 15;
+        const alpacas = [];
+        
+        const loader = new THREE.TextureLoader();
+        const alpacaTexture = loader.load('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><ellipse cx="50" cy="60" rx="30" ry="40" fill="%23ffffff"/><ellipse cx="50" cy="30" rx="20" ry="25" fill="%23ffffff"/><circle cx="40" cy="25" r="3" fill="%23000000"/><circle cx="60" cy="25" r="3" fill="%23000000"/><path d="M45,35 Q50,40 55,35" stroke="%23000000" fill="none" stroke-width="2"/></svg>');
+        
+        for (let i = 0; i < alpacaCount; i++) {
+            const alpacaMaterial = new THREE.SpriteMaterial({ 
+                map: alpacaTexture,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const alpaca = new THREE.Sprite(alpacaMaterial);
+            alpaca.scale.set(1, 1, 1);
+            
+            alpaca.position.x = (Math.random() - 0.5) * 20;
+            alpaca.position.y = (Math.random() - 0.5) * 10;
+            alpaca.position.z = (Math.random() - 0.5) * 10;
+            
+            alpaca.userData = {
+                speedX: Math.random() * 0.02 - 0.01,
+                speedY: Math.random() * 0.02 - 0.01,
+                speedZ: Math.random() * 0.02 - 0.01,
+                rotationSpeed: Math.random() * 0.02 - 0.01
+            };
+            
+            scene.add(alpaca);
+            alpacas.push(alpaca);
+        }
+        
+        const fiberCount = 2000;
+        const fiberGeometry = new THREE.BufferGeometry();
+        const fiberPositions = new Float32Array(fiberCount * 3);
+        const fiberColors = new Float32Array(fiberCount * 3);
+        const fiberSizes = new Float32Array(fiberCount);
+        
+        for (let i = 0; i < fiberCount; i++) {
+            fiberPositions[i * 3] = (Math.random() - 0.5) * 30;
+            fiberPositions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+            fiberPositions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+            
+            fiberColors[i * 3] = Math.random() * 0.5 + 0.5;
+            fiberColors[i * 3 + 1] = Math.random() * 0.5 + 0.3;
+            fiberColors[i * 3 + 2] = Math.random() * 0.5 + 0.5;
+            
+            fiberSizes[i] = Math.random() * 0.5 + 0.1;
+        }
+        
+        fiberGeometry.setAttribute('position', new THREE.BufferAttribute(fiberPositions, 3));
+        fiberGeometry.setAttribute('color', new THREE.BufferAttribute(fiberColors, 3));
+        fiberGeometry.setAttribute('size', new THREE.BufferAttribute(fiberSizes, 1));
+        
+        const fiberMaterial = new THREE.PointsMaterial({
+            size: 0.2,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true
+        });
+        
+        const fibers = new THREE.Points(fiberGeometry, fiberMaterial);
+        scene.add(fibers);
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+        
+        camera.position.z = 5;
+        
+        const clock = new THREE.Clock();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const elapsedTime = clock.getElapsedTime();
+            
+            alpacas.forEach(alpaca => {
+                alpaca.position.x += alpaca.userData.speedX;
+                alpaca.position.y += alpaca.userData.speedY;
+                alpaca.position.z += alpaca.userData.speedZ;
+                
+                if (Math.abs(alpaca.position.x) > 10) alpaca.userData.speedX *= -1;
+                if (Math.abs(alpaca.position.y) > 5) alpaca.userData.speedY *= -1;
+                if (Math.abs(alpaca.position.z) > 5) alpaca.userData.speedZ *= -1;
+                
+                alpaca.rotation.z += alpaca.userData.rotationSpeed;
+            });
+            
+            const positions = fiberGeometry.attributes.position.array;
+            for (let i = 0; i < fiberCount; i++) {
+                positions[i * 3] += Math.sin(elapsedTime + i) * 0.01;
+                positions[i * 3 + 1] += Math.cos(elapsedTime * 0.7 + i) * 0.01;
+                positions[i * 3 + 2] += Math.sin(elapsedTime * 0.5 + i) * 0.01;
+            }
+            fiberGeometry.attributes.position.needsUpdate = true;
+            
+            camera.position.x = Math.sin(elapsedTime * 0.2) * 0.5;
+            camera.position.y = Math.cos(elapsedTime * 0.3) * 0.3;
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            cards.forEach(card => {
+                observer.observe(card);
+            });
+            
+            gsap.registerPlugin(ScrollTrigger);
+            
+            gsap.utils.toArray('.section').forEach((section, i) => {
+                if(i > 0) {
+                    gsap.from(section, {
+                        scrollTrigger: {
+                            trigger: section,
+                            start: "top bottom",
+                            toggleActions: "play none none none"
+                        },
+                        y: 50,
+                        opacity: 0,
+                        duration: 1
+                    });
+                }
+            });
+        });
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
